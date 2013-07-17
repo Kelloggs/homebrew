@@ -10,9 +10,16 @@ class Alembic < Formula
   depends_on 'boost'
   depends_on 'hdf5'
   depends_on 'ilmbase'
+  depends_on 'zlib'
+  
+  def patches
+    #Reported upstream http://code.google.com/p/alembic/issues/detail?id=310
+    DATA
+  end
 
   def install
-    cmake_args = std_cmake_args + %w{. -DUSE_PYILMBASE=OFF -DUSE_PRMAN=OFF -DUSE_ARNOLD=OFF -DUSE_MAYA=OFF -DUSE_PYALEMBIC=OFF}
+    cmake_args = std_cmake_args + %w{. -DCMAKE_CXX_COMPILER=g++-4.7 -DUSE_PYILMBASE=OFF -DUSE_PRMAN=OFF -DUSE_ARNOLD=OFF -DUSE_MAYA=OFF -DUSE_PYALEMBIC=OFF}
+    cmake_args << "-DCMAKE_CXX_FLAGS='-include sys/types.h -std=c++11'"
     system "cmake", *cmake_args
     system "make", "install"
     #move everything upwards
@@ -21,3 +28,19 @@ class Alembic < Formula
     bin.install_symlink Dir[prefix/"alembic-1.1.5/bin/*"]
   end
 end
+__END__
+diff --git a/lib/AbcOpenGL/Scene.cpp b/lib/AbcOpenGL/Scene.cpp
+index f404329..73e758e 100644
+--- a/lib/AbcOpenGL/Scene.cpp
++++ b/lib/AbcOpenGL/Scene.cpp
+@@ -45,8 +45,8 @@ void setMaterials( float o, bool negMatrix = false )
+ {
+     if ( negMatrix )
+     {
+-        GLfloat mat_front_diffuse[] = { 0.1 * o, 0.1 * o, 0.9 * o, o };
+-        GLfloat mat_back_diffuse[] = { 0.9 * o, 0.1 * o, 0.9 * o, o };
++        GLfloat mat_front_diffuse[] = { 0.1f * o, 0.1f * o, 0.9f * o, o };
++        GLfloat mat_back_diffuse[] = { 0.9f * o, 0.1f * o, 0.9f * o, o };
+ 
+         GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+         GLfloat mat_shininess[] = { 100.0 };
